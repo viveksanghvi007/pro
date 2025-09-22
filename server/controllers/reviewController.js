@@ -4,8 +4,29 @@ import { Review, Company } from '../models/index.js';
 export const addReview = async (req, res) => {
   try {
     const { companyId } = req.params;
+    
+    // Validate ObjectId format
+    if (!companyId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid company ID format' });
+    }
+
     const company = await Company.findById(companyId);
     if (!company) return res.status(404).json({ message: 'Company not found' });
+
+    // Validate required fields
+    const { fullName, subject, reviewText, rating } = req.body;
+    if (!fullName || !subject || !reviewText || !rating) {
+      return res.status(400).json({ 
+        message: 'Missing required fields: fullName, subject, reviewText, rating' 
+      });
+    }
+
+    // Validate rating range
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ 
+        message: 'Rating must be between 1 and 5' 
+      });
+    }
 
     const review = new Review({ ...req.body, company: companyId });
     await review.save();
@@ -18,6 +39,7 @@ export const addReview = async (req, res) => {
 
     res.status(201).json(review);
   } catch (error) {
+    console.error('Error in addReview:', error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -28,6 +50,10 @@ export const getReviews = async (req, res) => {
     const { companyId } = req.params;
     const { sort, search } = req.query;
 
+    // Validate ObjectId format
+    if (!companyId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid company ID format' });
+    }
 
     let query = { company: companyId };
 
@@ -50,6 +76,7 @@ export const getReviews = async (req, res) => {
     const result = await reviews;
     res.json(result);
   } catch (error) {
+    console.error('Error in getReviews:', error);
     res.status(500).json({ message: error.message });
   }
 };

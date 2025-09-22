@@ -29,13 +29,20 @@ const CompanyList = ({ onCompanyClick }) => {
         sort: sortBy === 'newest' ? 'date' : sortBy === 'rating' ? 'rating' : 'name'
       };
 
+      console.log('Fetching companies with params:', params);
       const response = await companyAPI.getAll(params);
+      console.log('API response:', response);
       setCompanies(response.data);
       setPagination(response.pagination);
       setCurrentPage(page);
     } catch (err) {
+      console.error('Detailed error fetching companies:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        stack: err.stack
+      });
       setError('Failed to fetch companies. Please try again.');
-      console.error('Error fetching companies:', err);
     } finally {
       setLoading(false);
     }
